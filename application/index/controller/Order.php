@@ -166,7 +166,7 @@ class Order extends Api
                 ]);
             } else {
                 $activityMap[$map[0]][$map[1]]->type = '@';
-                array_push($sites, ($key + 1).'排'.$activityMap[$map[0]][$map[1]]->no.'座');
+                array_push($sites, ($map[0] + 1).'排'.$activityMap[$map[0]][$map[1]]->no.'座');
             }
         }
         $activity->map = $activityMap;
@@ -225,7 +225,8 @@ class Order extends Api
                     Log::record('订单支付金额不符，订单号：'.$result->out_trade_no);
                 } else {
                     // 更改订单状态
-                    $order->status = self::ORDER_STATUS_SUCCESS;
+                    $order->status        = self::ORDER_STATUS_SUCCESS;
+                    $order->finished_time = time();
                     $order->save();
                 }
             }

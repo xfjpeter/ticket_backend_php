@@ -24,6 +24,7 @@ class Order extends Api
         $this->model = model('order');
     }
 
+    // 订单列表
     public function index()
     {
         $list  = $this->model->page($this->page, $this->limit)->order('create_time desc')->select();
@@ -39,6 +40,7 @@ class Order extends Api
         ]);
     }
 
+    // 订单详情
     public function get(string $order_no = '')
     {
         $order = $this->model->get(['order_id' => $order_no]);
@@ -55,5 +57,35 @@ class Order extends Api
             'message'  => 'success',
             'data'     => $order,
         ]);
+    }
+
+    // 订单导出
+    public function export()
+    {
+        // 查询所有的已支付的订单信息
+        $orders = $this->model->where('status', 1)->select();
+
+        if (!$orders) {
+            return json([
+                'err_code' => 1,
+                'message'  => '没有订单信息',
+            ]);
+        }
+        $orders = $orders->toArray();
+        $data   = [];
+        foreach ($orders as $order) {
+            $orderUser = [];
+            foreach ($order['details']['form'] as $form) {
+                $orderUser[$form['field']] = $form['value'];
+            }
+            $data[] = array_merge($orderUser, [
+                'sites'         => implode(';', $order['details']['hall']['sites']),
+                'create_time'   => $order['create_time'],
+                'finished_time' => $order['finished_time'] ? $order['finished_time'] : $order['update_time'],
+            ]);
+        }
+        $header = ['姓名', '电话', '单位', '座位信息', '下单时间', '支付时间'];
+
+        download_xml($header, $data);
     }
 }

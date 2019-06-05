@@ -32,7 +32,8 @@ class Auth
             return $next($request);
         }
 
-        $result = Jwt::getInstance()->verify($request->header('authorization', ''));
+        $authorization = $request->param('authorization', $request->header('authorization', ''));
+        $result        = Jwt::getInstance()->verify($authorization);
         if (!$result) {
             return json([
                 'err_code' => -1,
